@@ -19,26 +19,19 @@ class UserCommand extends Command
 //    protected $signature = 'app:user-command';
 
     protected static $defaultName = 'user:manage';
+    protected $description='User managing: add, list, delete {id}';
 
     protected function configure()
     {
         $this->setDescription('Manage users')
             ->addArgument('action', InputArgument::REQUIRED,
-                'Action to perform(list, add, delete)')
+                'Action to perform (list, add, delete)')
             ->addArgument('id', InputArgument::OPTIONAL,
                 'User ID (required for delete)');
     }
 
 
-    /**
-     * Execute the console command.
-     */
-    public function handle()
-    {
-        //
-    }
-
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $action = $input->getArgument('action');
 
@@ -55,18 +48,15 @@ class UserCommand extends Command
 
             default:
                 $output->writeln('Unknown command.');
-
         }
         return 0;
     }
-
 
     private function listUsers(OutputInterface $output): void
     {
         $path = public_path('users.json');
 
         $users = json_decode(file_get_contents($path), true);
-//        dd($users);
 
         if (!$users) {
             $output->writeln('No users found.');
@@ -75,21 +65,17 @@ class UserCommand extends Command
 
         $table = new Table($output);
 
-
         $table->setHeaders(['ID', 'Name', 'Email'])
             ->setRows($users);
         $table->render();
-
-
     }
 
-    private function addUser(OutputInterface $output)
+    private function addUser(OutputInterface $output): void
     {
         $path = public_path('users.json');
         $users = json_decode(file_get_contents($path), true);
 
         $id = end($users)['id'] + 1;
-
         $name = fake('ru')->name();
         $email = fake('ru')->email();
 
@@ -98,16 +84,16 @@ class UserCommand extends Command
             'name' => $name,
             'email' => $email
         ];
+
         file_put_contents($path, json_encode($users));
 
         $output->writeln('User was added successfully.');
         $output->writeln(json_encode($newUser));
     }
 
-    private function deleteUser($id, OutputInterface $output)
+    private function deleteUser($id, OutputInterface $output): void
     {
         $path = public_path('users.json');
-
 
         $users = json_decode(file_get_contents($path), true);
 
@@ -120,9 +106,5 @@ class UserCommand extends Command
         $users = array_values($users);
 
         file_put_contents($path, json_encode($users));
-
-
     }
-
-
 }
