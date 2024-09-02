@@ -75,12 +75,11 @@ class UserCommand extends Command
 
         $table = new Table($output);
 
-        foreach ($users as $user) {
-            dd($user['name']);
-            $table->setHeaders(['ID', 'Name', 'Email']);
-            $output->write($user['id'].' '. $user['name']. ' '. $user['email']);
 
-        }
+        $table->setHeaders(['ID', 'Name', 'Email'])
+            ->setRows($users);
+        $table->render();
+
 
     }
 
@@ -89,11 +88,12 @@ class UserCommand extends Command
         $path = public_path('users.json');
         $users = json_decode(file_get_contents($path), true);
 
-        $id = sizeof($users) + 1;
-        $name = Str::random(10);
-        $email = Str::random(8) . 'example.com';
+        $id = end($users)['id'] + 1;
 
-        $users[] = [
+        $name = fake('ru')->name();
+        $email = fake('ru')->email();
+
+        $users[] = $newUser = [
             'id' => $id,
             'name' => $name,
             'email' => $email
@@ -101,15 +101,26 @@ class UserCommand extends Command
         file_put_contents($path, json_encode($users));
 
         $output->writeln('User was added successfully.');
-        $output->writeln(json_encode([
-            'id' => $id,
-            'name' => $name,
-            'email' => $email
-        ]));
+        $output->writeln(json_encode($newUser));
     }
 
     private function deleteUser($id, OutputInterface $output)
     {
+        $path = public_path('users.json');
+
+
+        $users = json_decode(file_get_contents($path), true);
+
+        foreach ($users as $subKey => $subArray) {
+
+            if ($subArray['id'] == $id) {
+                unset($users[$subKey]);
+            }
+        }
+        $users = array_values($users);
+
+        file_put_contents($path, json_encode($users));
+
 
     }
 
